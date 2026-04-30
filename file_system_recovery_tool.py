@@ -7,8 +7,17 @@ Requirements: Python 3.x (no extra installs needed — uses only stdlib)
 Run: python file_system_recovery_tool.py
 """
 
-import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+try:
+    import tkinter as tk
+    from tkinter import ttk, scrolledtext, messagebox
+except ImportError:
+    # Vercel serverless environment fallback (no GUI)
+    import types
+    class MockTk: pass
+    tk = types.SimpleNamespace(Tk=MockTk)
+    ttk = types.SimpleNamespace()
+    scrolledtext = types.SimpleNamespace()
+    messagebox = types.SimpleNamespace()
 import random
 import time
 import threading
