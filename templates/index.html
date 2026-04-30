@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File System Recovery Tool</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Babel for in-browser JSX parsing -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons for React -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <div id="error-display" style="color: red; font-family: monospace; background: black; padding: 20px; z-index: 9999; position: absolute; top: 0; left: 0; display: none;"></div>
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            var err = document.getElementById('error-display');
+            err.style.display = 'block';
+            err.innerHTML += msg + ' <br> ' + url + ':' + lineNo + ':' + columnNo + '<br>' + (error && error.stack ? error.stack : '') + '<hr>';
+            return false;
+        };
+    </script>
+    <!-- Logic port from Python -->
+    <script src="/static/logic.js"></script>
+    <script type="text/babel" src="/static/app.jsx"></script>
+</body>
+</html>
