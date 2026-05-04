@@ -114,15 +114,11 @@ function App() {
                         <LogPanel logs={logs} />
                     </div>
 
-                    <OptimizerPanel 
-                        lru={state.lru_snapshot} 
-                        benchmarks={state.benchmarks}
-                        btreeKeys={state.btree_keys} 
-                    />
+
                 </main>
             </div>
             
-            <ChatWidget />
+
         </div>
     );
 }
@@ -234,15 +230,7 @@ function Controls({ onAction, addLog, setStatus, files }) {
                 </div>
             </div>
 
-            <div className="glass-panel section-panel">
-                <h2>Module 3: Optimizer</h2>
-                <div className="button-grid">
-                    <button className="btn outline" onClick={() => bench('none')}>No Opt</button>
-                    <button className="btn secondary" onClick={() => bench('btree')}>B-Tree</button>
-                    <button className="btn secondary" onClick={() => bench('lru')}>LRU</button>
-                    <button className="btn success full-width" onClick={() => bench('both')}>Full Opt (Defrag)</button>
-                </div>
-            </div>
+
         </aside>
     );
 }
@@ -346,130 +334,7 @@ function LogPanel({ logs }) {
     );
 }
 
-function OptimizerPanel({ lru, benchmarks, btreeKeys }) {
-    const latestBench = benchmarks.length > 0 ? benchmarks[benchmarks.length - 1] : { read: 0, write: 0 };
-    
-    return (
-        <div className="glass-panel opt-panel">
-            <h2>Data Structures (LRU & B-Tree)</h2>
-            <div className="opt-grid">
-                <div className="lru-visualizer">
-                    <h3>LRU Cache</h3>
-                    <div className="lru-slots">
-                        {[0, 1, 2, 3].map(i => {
-                            const item = lru[i];
-                            return (
-                                <div key={i} className={`lru-slot ${i === 0 && item ? 'mru' : ''}`}>
-                                    {item ? item.substring(0, 10) : '(empty)'}
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div style={{marginTop: '15px', fontSize: '0.85rem', color: 'var(--text-secondary)'}}>
-                        <strong>B-Tree Keys:</strong> {btreeKeys.length > 0 ? btreeKeys.slice(0, 8).join(', ') + (btreeKeys.length > 8 ? '...' : '') : 'Empty'}
-                    </div>
-                </div>
-                <div className="benchmark-stats">
-                    <div className="stat-box">
-                        <span className="stat-label">Read Speed</span>
-                        <span className="stat-value text-blue">{latestBench.read} MB/s</span>
-                    </div>
-                    <div className="stat-box">
-                        <span className="stat-label">Write Speed</span>
-                        <span className="stat-value text-amber">{latestBench.write} MB/s</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
-function ChatWidget() {
-    const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState([{ sender: 'ai', text: "Hello! I am your File System Assistant powered by Gemini. Ask me anything!" }]);
-    const [input, setInput] = useState("");
-    const [apiKey, setApiKey] = useState("");
-    const messagesEndRef = useRef(null);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(scrollToBottom, [messages, isOpen]);
-
-    const handleSend = async () => {
-        if (!input.trim()) return;
-        const userMsg = input.trim();
-        setInput("");
-        setMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
-        
-        if (!apiKey) {
-            setMessages(prev => [...prev, { sender: 'ai', text: "Please enter your Gemini API Key at the top of the chat to use the assistant." }]);
-            return;
-        }
-
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: `You are a helpful assistant for an OS File System simulator. Keep answers concise. User says: ${userMsg}` }]
-                    }]
-                })
-            });
-            const data = await res.json();
-            if (data.error) throw new Error(data.error.message);
-            
-            const reply = data.candidates[0].content.parts[0].text;
-            setMessages(prev => [...prev, { sender: 'ai', text: reply }]);
-        } catch (e) {
-            setMessages(prev => [...prev, { sender: 'ai', text: `Error connecting to AI assistant: ${e.message}` }]);
-        }
-    };
-
-    return (
-        <div className="chat-widget">
-            <button className="chat-toggle" onClick={() => setIsOpen(!isOpen)}>
-                {isOpen ? '✕' : 'AI'}
-            </button>
-            <div className={`chat-window ${isOpen ? '' : 'hidden'}`}>
-                <div className="chat-header">
-                    <h3>AI System Assistant</h3>
-                    <button className="close-btn" onClick={() => setIsOpen(false)}>✕</button>
-                </div>
-                <div style={{padding: '10px', background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid var(--surface-border)'}}>
-                    <input 
-                        type="password" 
-                        placeholder="Paste Gemini API Key here..." 
-                        value={apiKey} 
-                        onChange={e => setApiKey(e.target.value)}
-                        style={{width: '100%', padding: '5px', borderRadius: '4px', border: 'none'}}
-                    />
-                </div>
-                <div className="chat-messages">
-                    {messages.map((m, i) => (
-                        <div key={i} className={`message ${m.sender}`}>
-                            {m.text}
-                        </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                </div>
-                <div className="chat-input-area">
-                    <input 
-                        type="text" 
-                        value={input} 
-                        onChange={e => setInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSend()}
-                        placeholder="Ask a question..." 
-                    />
-                    <button onClick={handleSend}>Send</button>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
